@@ -67,6 +67,33 @@ The ServiceMonitor is used by the Prometheus Operator to discover and scrape the
 kubectl apply -f windows-exporter-servicemonitor.yaml
 ```
 
+### Step 6: Secure Prometheus and Grafana with TLS
+
+To secure your Prometheus and Grafana endpoints with TLS using cert-manager, follow these steps:
+
+#### Install cert-manager
+
+If you haven't installed cert-manager, you can install it using Helm (if already installed, skip to next section):
+
+```bash
+helm repo add jetstack https://charts.jetstack.io
+helm repo update
+helm install cert-manager jetstack/cert-manager --namespace cert-manager --create-namespace --version v1.5.3 --set installCRDs=true
+```
+
+#### Configure Ingress for Prometheus and Grafana
+
+Create Ingress resources to expose Prometheus and Grafana with TLS enabled, using the ClusterIssuer letsencrypt-prod to issue certificates.
+
+Apply the Ingress configurations:
+
+```bash
+kubectl apply -f prometheus-ingress.yaml
+kubectl apply -f grafana-ingress.yaml
+```
+
+The Ingress resources will use annotations to specify the ClusterIssuer for TLS certificates and to configure nginx ingress controller settings.
+
 ### Verifying Installation
 
 After applying the configurations, you can verify that the Windows Exporter is correctly set up by:
@@ -83,6 +110,13 @@ kubectl get endpoints windows-exporter-service -n default
 ```bash
 kubectl port-forward prometheus-prometheus-kube-prometheus-prometheus-0 9090
 ```
+
+4. Accessing the secured Prometheus and Grafana endpoints via the URLs:
+
+* https://prometheus.yourdomain.com
+* https://grafana.yourdomain.com
+
+Ensure that DNS records for prometheus.yourdomain.com and grafana.yourdomain.com are correctly set up to point to your Ingress controller's IP address or load balancer.
 
 ### Metrics Collection
 
