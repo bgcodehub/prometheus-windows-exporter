@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: windows-exporter-service
+  namespace: default
+  labels:
+    app: windows-exporter
+    job: windows
+spec:
+  selector:
+    app: windows-exporter
+  ports:
+    - name: http
+      protocol: TCP
+      port: 9182
+      targetPort: 9182
+  type: ClusterIP
