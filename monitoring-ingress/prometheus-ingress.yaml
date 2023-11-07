@@ -5,19 +5,11 @@ metadata:
   namespace: monitoring
   annotations:
     kubernetes.io/ingress.class: "nginx"
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"
-    # IP Whitelisting
-    nginx.ingress.kubernetes.io/whitelist-source-range: "<Your_Grafana_Instance_IP>/32"
 spec:
-  tls:
-  - hosts:
-    - prometheus-region1.mycompany.com
-    secretName: prometheus-tls
   rules:
-  - host: prometheus-region1.mycompany.com
-    http:
+  - http:
       paths:
-      - path: /
+      - path: /prometheus
         pathType: Prefix
         backend:
           service:
