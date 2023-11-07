@@ -2,23 +2,25 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: prometheus-ingress
+  namespace: monitoring
   annotations:
     kubernetes.io/ingress.class: "nginx"
-    nginx.ingress.kubernetes.io/rewrite-target: "/"
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    # IP Whitelisting
+    nginx.ingress.kubernetes.io/whitelist-source-range: "<Your_Grafana_Instance_IP>/32"
 spec:
+  tls:
+  - hosts:
+    - prometheus-region1.mycompany.com
+    secretName: prometheus-tls
   rules:
-  - host: prometheus.yourdomain.com
+  - host: prometheus-region1.mycompany.com
     http:
       paths:
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: prometheus-kube-prometheus-prometheus
+            name: prometheus-kube-prometheus-stack-prometheus
             port:
               number: 9090
-  tls:
-  - hosts:
-    - prometheus.yourdomain.com
-    secretName: prometheus-tls
