@@ -35,31 +35,17 @@
           "color": {
             "mode": "thresholds"
           },
-          "decimals": 0,
-          "mappings": [
-            {
-              "options": {
-                "result": {
-                  "index": 0
-                }
-              },
-              "type": "special"
-            }
-          ],
+          "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "text",
                 "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
               }
             ]
           },
-          "unit": "s"
+          "unit": "dtdhms"
         },
         "overrides": []
       },
@@ -73,18 +59,18 @@
       "links": [],
       "maxDataPoints": 100,
       "options": {
-        "colorMode": "none",
+        "colorMode": "value",
         "graphMode": "none",
         "justifyMode": "auto",
-        "orientation": "horizontal",
+        "orientation": "auto",
         "reduceOptions": {
           "calcs": [
             "mean"
           ],
-          "fields": "",
+          "fields": "/^\\{container=\"windows\\-exporter\", creating_process_id=\"0\", endpoint=\"http\", instance=\"10\\.66\\.0\\.183:9182\", job=\"windows\", namespace=\"prometheus\", pod=\"windows\\-exporter\\-nb8vk\", process=\"Idle\", process_id=\"0\", service=\"windows\\-exporter\\-service\"\\}$/",
           "values": false
         },
-        "textMode": "auto"
+        "textMode": "value"
       },
       "pluginVersion": "10.1.5",
       "repeat": "host",
@@ -95,19 +81,13 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "days_in_month(count(days_in_month(windows_system_system_up_time{job=\"windows\"})))",
-          "format": "time_series",
-          "fullMetaSearch": false,
+          "expr": "time() - windows_process_start_time{service=\"windows-exporter-service\", instance=\"$server\", container=\"windows-exporter\"}",
           "hide": false,
-          "includeNullMetadata": true,
-          "instant": true,
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "",
-          "refId": "A",
-          "useBackend": false
+          "instant": false,
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "A"
         }
       ],
       "title": "Uptime",
@@ -170,9 +150,9 @@
         "orientation": "horizontal",
         "reduceOptions": {
           "calcs": [
-            "lastNotNull"
+            "last"
           ],
-          "fields": "/^\\{instance=\"192\\.168\\.0\\.11:9182\"\\}$/",
+          "fields": "",
           "values": false
         },
         "showThresholdLabels": false,
@@ -185,10 +165,12 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "100 - (avg by (instance) (irate(windows_cpu_time_total{mode=\"idle\", instance=~\"$server\"}[1m])) * 100)",
+          "editorMode": "code",
+          "expr": "100 - (avg(irate(windows_cpu_time_total{mode=\"idle\", instance=\"$server\"}[1m])) * 100)",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "",
+          "range": true,
           "refId": "A"
         }
       ],
@@ -254,7 +236,7 @@
           "calcs": [
             "lastNotNull"
           ],
-          "fields": "/^\\{container=\"windows\\-exporter\", endpoint=\"http\", instance=\"192\\.168\\.0\\.11:9182\", job=\"windows\", namespace=\"default\", pod=\"windows\\-exporter\\-6chg5\", service=\"windows\\-exporter\\-service\"\\}$/",
+          "fields": "",
           "values": false
         },
         "showThresholdLabels": false,
@@ -268,7 +250,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "(windows_cs_physical_memory_bytes{instance=~\"$server\"} - windows_os_physical_memory_free_bytes{instance=~\"$server\"}) / windows_cs_physical_memory_bytes{instance=~\"$server\"} * 100",
+          "expr": "100 * (1 - avg by (instance) (windows_os_physical_memory_free_bytes{instance=~\"$server\"}) / avg by (instance) (windows_cs_physical_memory_bytes{instance=~\"$server\"}))",
           "format": "time_series",
           "intervalFactor": 1,
           "range": true,
@@ -337,7 +319,7 @@
           "calcs": [
             "lastNotNull"
           ],
-          "fields": "/^\\{instance=\"192\\.168\\.0\\.11:9182\"\\}$/",
+          "fields": "",
           "values": false
         },
         "showThresholdLabels": false,
@@ -350,9 +332,11 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "(sum(windows_logical_disk_size_bytes{volume!~\"Harddisk.*\", instance=\"$server\"}) by (instance) - sum(windows_logical_disk_free_bytes{volume!~\"Harddisk.*\", instance=\"$server\"}) by (instance)) / sum(windows_logical_disk_size_bytes{volume!~\"Harddisk.*\", instance=\"$server\"}) by (instance) * 100",
+          "editorMode": "code",
+          "expr": "100 * (1 - sum by (instance) (windows_logical_disk_free_bytes{volume!~\"Harddisk.*\", instance=\"$server\"}) / sum by (instance) (windows_logical_disk_size_bytes{volume!~\"Harddisk.*\", instance=\"$server\"}))",
           "format": "time_series",
           "intervalFactor": 1,
+          "range": true,
           "refId": "A"
         }
       ],
@@ -419,7 +403,7 @@
           "calcs": [
             "lastNotNull"
           ],
-          "fields": "/^\\(sum\\(irate\\(windows_net_bytes_total\\{instance=\"192\\.168\\.0\\.11:9182\"\\}\\[1m\\]\\)\\) \\> 1\\)\\* 8$/",
+          "fields": "",
           "values": false
         },
         "showThresholdLabels": false,
@@ -432,25 +416,14 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "(sum(irate(windows_net_bytes_total{instance=\"$server\"}[1m])) > 1)* 8",
+          "editorMode": "code",
+          "expr": "sum(\r\n  irate(windows_net_bytes_received_total{instance=\"$server\"}[1m]) +\r\n  irate(windows_net_bytes_sent_total{instance=\"$server\"}[1m])\r\n) * 8",
           "format": "time_series",
           "hide": false,
           "intervalFactor": 1,
           "legendFormat": "",
-          "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "  sum(irate(windows_net_bytes_total{instance=~\"$server\",nic=\"Red_Hat_VirtIO_Ethernet_Adapter\"}[5m])) / sum(windows_net_current_bandwidth{instance=~\"$server\",nic=\"Red_Hat_VirtIO_Ethernet_Adapter\"}/8) * 100",
-          "format": "time_series",
-          "hide": true,
-          "intervalFactor": 1,
           "range": true,
-          "refId": "B"
+          "refId": "A"
         }
       ],
       "title": "Bandwidth",
@@ -611,7 +584,7 @@
           "calcs": [
             "mean"
           ],
-          "fields": "/^windows_cs_logical_processors\\{container=\"windows\\-exporter\", endpoint=\"http\", instance=\"192\\.168\\.0\\.11:9182\", job=\"windows\", namespace=\"default\", pod=\"windows\\-exporter\\-6chg5\", service=\"windows\\-exporter\\-service\"\\}$/",
+          "fields": "",
           "values": false
         },
         "textMode": "auto"
@@ -625,10 +598,12 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
+          "editorMode": "code",
           "expr": "windows_cs_logical_processors{instance=~\"$server\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "",
+          "range": true,
           "refId": "A"
         }
       ],
@@ -671,7 +646,7 @@
               }
             ]
           },
-          "unit": "bytes"
+          "unit": "percent"
         },
         "overrides": []
       },
@@ -694,7 +669,7 @@
           "calcs": [
             "mean"
           ],
-          "fields": "/^windows_cs_physical_memory_bytes\\{container=\"windows\\-exporter\", endpoint=\"http\", instance=\"192\\.168\\.0\\.11:9182\", job=\"windows\", namespace=\"default\", pod=\"windows\\-exporter\\-6chg5\", service=\"windows\\-exporter\\-service\"\\}$/",
+          "fields": "",
           "values": false
         },
         "textMode": "auto"
@@ -708,14 +683,16 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "windows_cs_physical_memory_bytes{instance=~\"$server\"}",
+          "editorMode": "code",
+          "expr": "(1 - (windows_os_physical_memory_free_bytes{instance=~\"$server\"} / windows_cs_physical_memory_bytes{instance=~\"$server\"})) * 100",
           "format": "time_series",
           "intervalFactor": 1,
-          "legendFormat": "",
+          "legendFormat": "__auto",
+          "range": true,
           "refId": "A"
         }
       ],
-      "title": "RAM",
+      "title": "RAM Utilization (%)",
       "type": "stat"
     },
     {
@@ -874,7 +851,7 @@
           "calcs": [
             "lastNotNull"
           ],
-          "fields": "/^192\\.168\\.0\\.11:9182$/",
+          "fields": "",
           "values": false
         },
         "showThresholdLabels": false,
@@ -888,7 +865,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "windows_os_physical_memory_free_bytes{instance=~\"$server\"} / 1024^3",
+          "expr": "windows_os_physical_memory_free_bytes{instance=\"$server\"} / 1024^3",
           "format": "time_series",
           "hide": false,
           "interval": "",
@@ -1996,8 +1973,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "red",
-                "value": null
+                "color": "red"
               },
               {
                 "color": "#EAB839",
@@ -2090,8 +2066,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -2137,7 +2112,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "windows_system_threads{instance=\"192.168.0.11:9182\"}",
+          "expr": "windows_system_threads{instance=\"$server\"}",
           "format": "time_series",
           "functions": [],
           "group": {
@@ -2381,7 +2356,7 @@
       }
     }
   ],
-  "refresh": "",
+  "refresh": "5s",
   "schemaVersion": 38,
   "style": "dark",
   "tags": [
@@ -2418,8 +2393,8 @@
       {
         "current": {
           "selected": false,
-          "text": "192.168.0.11:9182",
-          "value": "192.168.0.11:9182"
+          "text": "10.66.0.10:9182",
+          "value": "10.66.0.10:9182"
         },
         "datasource": {
           "type": "prometheus",
@@ -2475,6 +2450,6 @@
   "timezone": "browser",
   "title": "Windows Exporter Dashboard",
   "uid": "IV0hu1m7z",
-  "version": 7,
+  "version": 4,
   "weekStart": ""
 }
